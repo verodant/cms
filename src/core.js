@@ -11,51 +11,23 @@ export class Core {
         return this[name];
     }
 
-    static with2(baseClass, ...mixins) {
+    static with(classToExtend) {
 
-        let base = class _Combined extends baseClass {
-            constructor(...args) {
-                super(...args)
-                mixins.forEach((mixin) => {
-                    mixin.prototype.initializer.call(this)
-                })
-            }
-        }
-        let copyProps = (target, source) => {
-            Object.getOwnPropertyNames(source)
-                .concat(Object.getOwnPropertySymbols(source))
-                .forEach((prop) => {
-                    if (prop.match(/^(?:constructor|prototype|arguments|caller|name|bind|call|apply|toString|length)$/))
-                        return
-                    Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(source, prop))
-                })
-        }
-        mixins.forEach((mixin) => {
-            copyProps(base.prototype, mixin.prototype)
-            copyProps(base, mixin)
-        })
-        return base
-    }
+        let aux = Base => class extends Base { };
 
-    static with(...classes) {
+        console.log(class extends aux(classToExtend){});
 
-        let aux = Base => class extends clase { };
+        return  (classToExtend) => class extends Base { };
 
-        //return class extends Core{};
-        let kk = classes.reduce((baseclass, classToExtend) => {
-            class myClass extends baseclass { };
-            class myClass2 extends classToExtend { };
-            return myClass2;
+        
+
+        //return classes.reduce((acc,i)=>class extends i{});
+
+        return classes.reduce((baseclass, classToExtend) => {
+            return class extends classToExtend { };
         }, Core);
 
-        return kk;
     }
 
 }
 window.Core = Core;
-
-
-
-require(['modules/utils/Cookie'],function(Cookie){
-    
-})

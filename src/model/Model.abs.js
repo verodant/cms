@@ -17,7 +17,7 @@ class b {
 
 window.a = a;
 window.b = b;
-export class ModelAbs extends Core.with2(a,b) {
+export class ModelAbs extends Core.with(a,b) {
     static get properties() {
         return {};
     }
