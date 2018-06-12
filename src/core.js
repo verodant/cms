@@ -10,23 +10,9 @@ export class Core {
     get(name) {
         return this[name];
     }
-
-    static with(classToExtend) {
-
-        let aux = Base => class extends Base { };
-
-        console.log(class extends aux(classToExtend){});
-
-        return  (classToExtend) => class extends Base { };
-
-        
-
-        //return classes.reduce((acc,i)=>class extends i{});
-
-        return classes.reduce((baseclass, classToExtend) => {
-            return class extends classToExtend { };
-        }, Core);
-
+    
+    static with(...mixins) {
+        return mixins.reduce((c, mixin) => mixin(c), Core);
     }
 
 }

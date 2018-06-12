@@ -3,21 +3,8 @@ import { IndexedDBStorage } from '/src/IndexedDBStorage.js';
 
 const STORE = new WeakMap();
 const CONNECTION = new IndexedDBStorage('model');
-class a {
-  constructor(){
-      this.kk = 'kakita';
-  }
-};
 
-class b {
-    constructor(){
-        this.qq = 'qaqita';
-    }
-  };
-
-window.a = a;
-window.b = b;
-export class ModelAbs extends Core.with(a,b) {
+export class ModelAbs extends Core.with() {
     static get properties() {
         return {};
     }
@@ -31,7 +18,9 @@ export class ModelAbs extends Core.with(a,b) {
         this._status = 'NEW';
         STORE.set(this, new Map());
         this._defineProperties();
-        /* CONNECTION.getWarehouse(new.target.name); */
+
+        CONNECTION.getWarehouse(new.target.name); 
+        
     }
 
     _defineProperties() {
@@ -69,12 +58,25 @@ export class ModelAbs extends Core.with(a,b) {
     }
 
     reset() {
-
+        /* TODO memento pattern */
     }
 
     save() {
         console.log('salvo datos remotos');
+
+        this.editorialData.save().then(s=>{
+            
+        })
+
         this._status = 'SAVED';
+    }
+
+    destroy(){
+
+    }
+
+    delete(){
+
     }
 
 }
