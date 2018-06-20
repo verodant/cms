@@ -11,8 +11,8 @@ export class ModelStorage {
         this._loadBBDD();
     }
 
-    async _loadBBDD() {
-        this.dataBase = await indexedDB.open(BBDDNAME, 1);
+    _loadBBDD() {
+        this.dataBase = indexedDB.open(BBDDNAME, 1);
         this.dataBase.onupgradeneeded = (e) => {
             let principal = this.dataBase.result.createObjectStore(BBDDBUCKETNAME, { keyPath: 'primaryKey', unique: true });
             let garbage = this.dataBase.result.createObjectStore(`${BBDDBUCKETNAME}-garbage`, { autoIncrement: true });
@@ -32,14 +32,15 @@ export class ModelStorage {
     }
 
     get(primaryKey) {
-        return new Promise(async success => {
-            const request = await this.dataBase.result
-                .transaction([BBDDBUCKETNAME], "readonly")
-                .objectStore(BBDDBUCKETNAME)
-                .get(primaryKey);
-
-            request.onsuccess = function () {
-                success(this.result);
+        return new Promise(success => {
+            this.dataBase.onsuccess = e => {
+                this.dataBase.result
+                    .transaction([BBDDBUCKETNAME], "readonly")
+                    .objectStore(BBDDBUCKETNAME)
+                    .get(primaryKey)
+                    .onsuccess = function () {
+                        success(this.result);
+                    };
             };
         })
 

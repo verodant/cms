@@ -28,14 +28,15 @@ export class ModelAbs extends Core.with() {
         
         this._defineProperties();
 
+
     }
 
     async _defineProperties() {
         const LOCALSTORE = STORE.get(this);
         const PROPS = this.constructor.properties;
         
-        a = await CONNECTION.get('Persona::1');
-        console.log(a);
+        let a = await CONNECTION.get(this.primaryKey);
+        console.log('pk', this.primaryKey,'esto es a -> ',a);
         
         Object
             .keys(PROPS)
