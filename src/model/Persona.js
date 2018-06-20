@@ -2,21 +2,19 @@ import { ModelAbs } from './Model.abs.js';
 export class Persona extends ModelAbs {
 
     static get model_path() {
-        return '/editorial/';
+        return '/persona/';
     }
-    /**
-     * TODO-> 
-     */
+
     static get properties() {
         return {
             id: {
                 type: Number,
+                value: new Date().getTime(),
                 pk: true
             },
             name: {
                 type: String,
-                value: 'sin nombre',
-                pk: true
+                value: 'sin nombre'
             },
             description: {
                 type: String,
@@ -28,13 +26,11 @@ export class Persona extends ModelAbs {
             },
             prefesion: {
                 type: String
-            },
-            editorialData: {
-                type: EditorialData,
-                value: new EditorialData
             }
         }
     }
+
+
 
     constructor(id) {
         super();

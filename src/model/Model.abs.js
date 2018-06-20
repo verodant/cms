@@ -1,47 +1,61 @@
 import { Core } from '/src/core.js';
-import { IndexedDBStorage } from '/src/IndexedDBStorage.js';
+import { ModelStorage } from '/src/storage/IndexedDB/ModelStorage.js';
 
 const STORE = new WeakMap();
-const CONNECTION = new IndexedDBStorage('model');
+const CONNECTION = new ModelStorage;
 
 export class ModelAbs extends Core.with() {
     static get properties() {
         return {};
     }
 
-    static get model_path() {
-        return `ruta_api_modelo`;
+    get primaryKey() {
+        return Object
+            .keys(this.constructor.properties)
+            .filter((item) => {
+                return !!this.constructor.properties[item].pk;
+            })
+            .map(key => this[key])
+            .join("::");
     }
 
-    constructor() {
+    constructor(id = null) {
         super();
+        if (id) return console.log('cargo de api');
+
         this._status = 'NEW';
         STORE.set(this, new Map());
+        
         this._defineProperties();
 
-        CONNECTION.getWarehouse(new.target.name); 
-        
     }
 
-    _defineProperties() {
+    async _defineProperties() {
         const LOCALSTORE = STORE.get(this);
         const PROPS = this.constructor.properties;
-
+        
+        a = await CONNECTION.get('Persona::1');
+        console.log(a);
+        
         Object
             .keys(PROPS)
             .forEach((item, key, arr) => {
-                Object.defineProperty(this, item, {
-                    set: (value) => {
-                        if (value !== undefined && value === LOCALSTORE.get(item)) return;
-                        this._checkType(value, PROPS[item].type, item);
-                        LOCALSTORE.set(item, value);
-                        if (this._status && this._status == 'SAVED') this._status = "MODIFIED";
-                    },
-                    get: () => {
-                        return LOCALSTORE.get(item)
-                    },
-                    enumerable: true
-                });
+                Object.defineProperty(
+                    this,
+                    item,
+                    {
+                        set: (value) => {
+                            if (value !== undefined && value === LOCALSTORE.get(item)) return;
+                            this._checkType(value, PROPS[item].type, item);
+                            LOCALSTORE.set(item, value);
+                            if (this._status && this._status == 'SAVED') this._status = "MODIFIED";
+                        },
+                        get: () => {
+                            return LOCALSTORE.get(item)
+                        },
+                        enumerable: true
+                    }
+                );
                 this[item] = PROPS[item].value || undefined;
             })
     }
@@ -63,20 +77,17 @@ export class ModelAbs extends Core.with() {
 
     save() {
         console.log('salvo datos remotos');
-
-        this.editorialData.save().then(s=>{
-            
-        })
-
         this._status = 'SAVED';
     }
 
-    destroy(){
+    destroy() {
 
     }
 
-    delete(){
+    delete() {
 
     }
 
 }
+
+window.CONNECTION = CONNECTION;
