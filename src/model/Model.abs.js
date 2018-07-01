@@ -10,7 +10,8 @@ export class ModelAbs extends Core.with() {
     }
 
     get primaryKey() {
-        return Object
+        return this.constructor.name + '::' + 
+        Object
             .keys(this.constructor.properties)
             .filter((item) => {
                 return !!this.constructor.properties[item].pk;
