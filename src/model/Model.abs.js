@@ -15,7 +15,7 @@ export class ModelAbs extends Core.with() {
             .filter((item) => {
                 return !!this.constructor.properties[item].pk;
             })
-            .map(key => this[key])
+            .map(key => this[key] || this.constructor.properties[key].value)
             .join("::");
     }
 
