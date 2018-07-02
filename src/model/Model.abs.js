@@ -1,95 +1,91 @@
-import { Core } from '/src/core.js';
-import { ModelStorage } from '/src/storage/IndexedDB/ModelStorage.js';
+import { Core } from "/src/core.js";
+import { ModelStorage } from "/src/storage/IndexedDB/ModelStorage.js";
 
 const STORE = new WeakMap();
-const CONNECTION = new ModelStorage;
+const CONNECTION = new ModelStorage();
 
 export class ModelAbs extends Core.with() {
-    static get properties() {
-        return {};
-    }
+  static get properties() {
+    return {};
+  }
 
-    get primaryKey() {
-        return this.constructor.name + '::' + 
-        Object
-            .keys(this.constructor.properties)
-            .filter((item) => {
-                return !!this.constructor.properties[item].pk;
-            })
-            .map(key => this[key] || this.constructor.properties[key].value)
-            .join("::");
-    }
+  get primaryKey() {
+    return (
+      this.constructor.name +
+      "::" +
+      Object.keys(this.constructor.properties)
+        .filter(item => {
+          return !!this.constructor.properties[item].pk;
+        })
+        .map(key => this[key] || this.constructor.properties[key].value)
+        .join("::")
+    );
+  }
 
-    constructor(id = null) {
-        super();
-        if (id) return console.log('cargo de api');
+  constructor(id = null) {
+    super();
+    if (id) return console.log("cargo de api");
 
-        this._status = 'NEW';
-        STORE.set(this, new Map());
-        
-        this._defineProperties();
+    this._status = "NEW";
+    STORE.set(this, new Map());
 
+    this._defineProperties();
+  }
 
-    }
+  async _defineProperties() {
+    const LOCALSTORE = STORE.get(this);
+    const PROPS = this.constructor.properties;
 
-    async _defineProperties() {
-        const LOCALSTORE = STORE.get(this);
-        const PROPS = this.constructor.properties;
-        
-        let a = await CONNECTION.get(this.primaryKey);
-        console.log('pk', this.primaryKey,'esto es a -> ',a);
-        
-        Object
-            .keys(PROPS)
-            .forEach((item, key, arr) => {
-                Object.defineProperty(
-                    this,
-                    item,
-                    {
-                        set: (value) => {
-                            if (value !== undefined && value === LOCALSTORE.get(item)) return;
-                            this._checkType(value, PROPS[item].type, item);
-                            LOCALSTORE.set(item, value);
-                            if (this._status && this._status == 'SAVED') this._status = "MODIFIED";
-                        },
-                        get: () => {
-                            return LOCALSTORE.get(item)
-                        },
-                        enumerable: true
-                    }
-                );
-                this[item] = PROPS[item].value || undefined;
-            })
-    }
+    let a = await CONNECTION.get('Persona::15305438867800');
+    console.log("pk", 'Persona::15305438867800', "esto es a -> ", a);
 
-    *[Symbol.iterator]() { for (let i of STORE.get(this).entries()) yield i; }
+    Object.keys(PROPS).forEach((item, key, arr) => {
+      Object.defineProperty(this, item, {
+        set: value => {
+          if (value !== undefined && value === LOCALSTORE.get(item)) return;
+          this._checkType(value, PROPS[item].type, item);
+          LOCALSTORE.set(item, value);
+          //CONNECTION.set(this.primaryKey, item, value);
+          if (this._status && this._status == "SAVED")
+            this._status = "MODIFIED";
+        },
+        get: () => {
+          return LOCALSTORE.get(item);
+        },
+        enumerable: true
+      });
+      this[item] = PROPS[item].value || undefined;
+    });
+  }
 
-    _checkType(value, type, name = null) {
-        if (type && value && !(value.__proto__ === type.prototype)) throw new TypeError(`Tipo de variable no esperado para ${name}, se esperaba un ${type}`);
-    }
+  *[Symbol.iterator]() {
+    for (let i of STORE.get(this).entries()) yield i;
+  }
 
-    _load() {
-        console.log('carga datos remotos');
-        this._status = 'SAVED';
-    }
+  _checkType(value, type, name = null) {
+    if (type && value && !(value.__proto__ === type.prototype))
+      throw new TypeError(
+        `Tipo de variable no esperado para ${name}, se esperaba un ${type}`
+      );
+  }
 
-    reset() {
-        /* TODO memento pattern */
-    }
+  _load() {
+    console.log("carga datos remotos");
+    this._status = "SAVED";
+  }
 
-    save() {
-        console.log('salvo datos remotos');
-        this._status = 'SAVED';
-    }
+  reset() {
+    /* TODO memento pattern */
+  }
 
-    destroy() {
+  save() {
+    console.log("salvo datos remotos");
+    this._status = "SAVED";
+  }
 
-    }
+  destroy() {}
 
-    delete() {
-
-    }
-
+  delete() {}
 }
 
 window.CONNECTION = CONNECTION;

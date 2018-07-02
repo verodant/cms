@@ -1,53 +1,68 @@
 let INSTANCE = null;
 const BBDDNAME = 'CMS-BBDD';
-const BBDDBUCKETNAME = 'models'
+const BBDDBUCKETNAME = 'models';
+const VERSION = 1;
 
 
 export class ModelStorage {
     constructor() {
         if (INSTANCE) return INSTANCE;
         INSTANCE = this;
-        this.dataBase = null;
-        this._loadBBDD();
+        this.dataBase = this._loadBBDD();
     }
 
     _loadBBDD() {
-        this.dataBase = indexedDB.open(BBDDNAME, 1);
-        this.dataBase.onupgradeneeded = (e) => {
-            let principal = this.dataBase.result.createObjectStore(BBDDBUCKETNAME, { keyPath: 'primaryKey', unique: true });
-            let garbage = this.dataBase.result.createObjectStore(`${BBDDBUCKETNAME}-garbage`, { autoIncrement: true });
+        return new Promise(success => {
+            let dataBase = indexedDB.open(BBDDNAME, VERSION);
+            dataBase.onsuccess = function () {
+                success(dataBase);
+            };
+            dataBase.onupgradeneeded = (e) => {
+                let principal = dataBase.result.createObjectStore(BBDDBUCKETNAME, {
+                    keyPath: 'primaryKey',
+                    unique: true
+                });
+                let garbage = dataBase.result.createObjectStore(`${BBDDBUCKETNAME}-garbage`, {
+                    autoIncrement: true
+                });
 
-        };
+            };
+
+        });
+
+
     }
 
     delete() {
 
     }
 
-    set(primaryKey, value) {
-        this.dataBase.result
-            .transaction([BBDDBUCKETNAME], 'readwrite')
-            .objectStore(BBDDBUCKETNAME).put({ primaryKey, ...value });
+    /* set(primaryKey, value) {
+        const objecStore = this.dataBase.result
+            .transaction([BBDDBUCKETNAME], 'readwrite');
 
-    }
+        objecStore.objectStore(BBDDBUCKETNAME).put({
+            primaryKey,
+            ...value
+        });
+    } */
 
     get(primaryKey) {
-        return new Promise(success => {
-            this.dataBase.onsuccess = e => {
-                this.dataBase.result
-                    .transaction([BBDDBUCKETNAME], "readonly")
-                    .objectStore(BBDDBUCKETNAME)
-                    .get(primaryKey)
-                    .onsuccess = function () {
-                        success(this.result);
-                    };
-            };
+        return new Promise((success) => {
+            this.dataBase.then(dataBase => {
+                let tx = dataBase.result
+                    .transaction([BBDDBUCKETNAME], "readonly");
+                let store = tx.objectStore(BBDDBUCKETNAME)
+                console.log('pk-=>>',primaryKey)
+                let req = store.get(primaryKey)
+                  req.onsuccess = function (e) {
+                    debugger;
+                        console.log('succes de la transition', req.result)
+                        success(req.result);
+                    }
+            })
+
         })
-
-
-        /*const tx = await this.dataBase.result.transaction([BBDDBUCKETNAME], 'readonly');
-        tx.objectStore(BBDDBUCKETNAME).get(primaryKey);*/
-
     }
 }
 window.ModelStorage = ModelStorage;
