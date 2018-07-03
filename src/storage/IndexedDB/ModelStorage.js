@@ -37,29 +37,32 @@ export class ModelStorage {
 
     }
 
-    /* set(primaryKey, value) {
-        const objecStore = this.dataBase.result
-            .transaction([BBDDBUCKETNAME], 'readwrite');
+    set(primaryKey, value) {
+        this.dataBase.then(dataBase => {
+            const objecStore = dataBase.result
+                .transaction([BBDDBUCKETNAME], 'readwrite');
 
-        objecStore.objectStore(BBDDBUCKETNAME).put({
-            primaryKey,
-            ...value
-        });
-    } */
+            objecStore.objectStore(BBDDBUCKETNAME).put({
+                primaryKey,
+                ...value
+            });
+        })
+    }
 
     get(primaryKey) {
         return new Promise((success) => {
             this.dataBase.then(dataBase => {
+                console.log(dataBase.result);
                 let tx = dataBase.result
                     .transaction([BBDDBUCKETNAME], "readonly");
                 let store = tx.objectStore(BBDDBUCKETNAME)
-                console.log('pk-=>>',primaryKey)
+                console.log('pk-=>>', primaryKey)
                 let req = store.get(primaryKey)
-                  req.onsuccess = function (e) {
-                    debugger;
-                        console.log('succes de la transition', req.result)
-                        success(req.result);
-                    }
+                req.onsuccess = function (e) {
+                    console.log(e)
+                    console.log('succes de la transition', req.result)
+                    success(req.result);
+                }
             })
 
         })

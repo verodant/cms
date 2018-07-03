@@ -36,16 +36,16 @@ export class ModelAbs extends Core.with() {
     const LOCALSTORE = STORE.get(this);
     const PROPS = this.constructor.properties;
 
-    let a = await CONNECTION.get('Persona::15305438867800');
-    console.log("pk", 'Persona::15305438867800', "esto es a -> ", a);
-
+    let a = await CONNECTION.get("Persona::1530618633911");
+    console.log("pk", "Persona::1530618633911", "esto es a -> ", a);
+    
     Object.keys(PROPS).forEach((item, key, arr) => {
       Object.defineProperty(this, item, {
         set: value => {
           if (value !== undefined && value === LOCALSTORE.get(item)) return;
           this._checkType(value, PROPS[item].type, item);
           LOCALSTORE.set(item, value);
-          //CONNECTION.set(this.primaryKey, item, value);
+          /*CONNECTION.set(this.primaryKey, item, value);*/
           if (this._status && this._status == "SAVED")
             this._status = "MODIFIED";
         },

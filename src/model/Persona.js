@@ -14,8 +14,7 @@ export class Persona extends ModelAbs {
             },
             name: {
                 type: String,
-                value: 'sin nombre',
-                
+                value: 'sin nombre'
             },
             description: {
                 type: String,
@@ -23,7 +22,7 @@ export class Persona extends ModelAbs {
             },
             date: {
                 type: Date,
-                value: new Date()
+                value: new Date(),
             },
             prefesion: {
                 type: String
