@@ -148,9 +148,9 @@ export class ModelAbs extends Core.with() {
   /**
    * @description Comprueba el tipo de la variable. Tipado. Lanza excepcion si no puede evaluar correctamete.
    *
-   * @param {*} value
-   * @param {*} type
-   * @param {*} [name=null]
+   * @param {*} value valor de la variable a evaluar
+   * @param {*} type cualquier tipo de variable para evaluar con value
+   * @param {String} [name=null] Nombre de la variable
    * @memberof ModelAbs
    */
   _checkType(value, type, name = null) {
