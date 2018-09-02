@@ -21,8 +21,8 @@ export class Persona extends ModelAbs {
                 value: 'sin Descripcion'
             },
             date: {
-                type: Date,
-                value: new Date(),
+                type: String,
+                value: new Date().toString(),
             },
             prefesion: {
                 type: String
@@ -33,7 +33,11 @@ export class Persona extends ModelAbs {
 
 
     constructor(id) {
-        super();
+        super(arguments);
+        if (id) {
+            this.id = id;
+            this._load();
+        }
     }
 
     save() {

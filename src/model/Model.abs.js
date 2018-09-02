@@ -1,14 +1,53 @@
 import { Core } from "/src/core.js";
-import { ModelStorage } from "/src/storage/IndexedDB/ModelStorage.js";
+import { FetchStorage } from "/src/storage/Fetch/FetchStorage.js";
 
+/**
+ * Definicion de las constantes del modulo
+ *  - Storage
+ *  - Connection 
+ */
 const STORE = new WeakMap();
-const CONNECTION = new ModelStorage();
+const CONNECTION = new FetchStorage();
 
+/**
+ * @description Clase encargada de gestionar cualquier tipo de modelo
+ *
+ * @export
+ * @class ModelAbs
+ * @extends {Core.with()}
+ */
 export class ModelAbs extends Core.with() {
+  /**
+   * @description Definicion de las propiedades desde cada modelo, contola si es pk, tipo de dato, etc...
+   *
+   * @readonly
+   * @static
+   * @memberof ModelAbs
+   */
   static get properties() {
     return {};
   }
 
+  /**
+   * @description Creates an instance of ModelAbs.
+   * @memberof ModelAbs
+   */
+  constructor() {
+    super();
+
+    this.status = "NEW";
+    STORE.set(this, new Map());
+
+    this._defineProperties();
+
+  }
+
+  /**
+   * @description Clave primaria del modelo
+   * @returns {String} 
+   * @readonly
+   * @memberof ModelAbs
+   */
   get primaryKey() {
     return (
       this.constructor.name +
@@ -22,70 +61,162 @@ export class ModelAbs extends Core.with() {
     );
   }
 
-  constructor(id = null) {
-    super();
-    if (id) return console.log("cargo de api");
-
-    this._status = "NEW";
-    STORE.set(this, new Map());
-
-    this._defineProperties();
+  /**
+   *
+   * @returns {Object} Datos en bulk del modelo
+   * @readonly
+   * @memberof ModelAbs
+   */
+  get data() {
+    const ret = {};
+    for (const [prop, value] of this) {
+      ret[prop] = [value];
+    }
+    return ret;
   }
 
-  async _defineProperties() {
-    const LOCALSTORE = STORE.get(this);
+  /**
+   * @description Devuelve el estado del objeto con respecto al storage remoto
+   *
+   * @returns {String}
+   * @memberof ModelAbs
+   */
+  get status() {
+    return this._status;
+  }
+
+/**
+ * @description Setea el estado del modelo con respecto al storage
+ * 
+ * @returns {String} 
+ * @memberof ModelAbs
+ */
+set status(status) {
+
+    switch (status) {
+      case 'NEW':
+        if (!!this.status) throw new Error('No puede estar en estado Nuevo este objeto');
+        this._status = status;
+        break;
+      case 'SAVED':
+        this._status = status;
+        break;
+      case 'MODIFIED':
+        if (this._status == "SAVED") this._status = status;
+        break;
+      default:
+        console.warn('tipo de stado desconocido');
+    }
+
+  }
+  /**
+   * @description Metodo privado que define todas las propiedades y comprueba su viabilidad
+   *
+   * @memberof ModelAbs
+   */
+  _defineProperties() {
+    
     const PROPS = this.constructor.properties;
 
-    let a = await CONNECTION.get("Persona::1530618633911");
-    console.log("pk", "Persona::1530618633911", "esto es a -> ", a);
-    
-    Object.keys(PROPS).forEach((item, key, arr) => {
-      Object.defineProperty(this, item, {
-        set: value => {
-          if (value !== undefined && value === LOCALSTORE.get(item)) return;
-          this._checkType(value, PROPS[item].type, item);
-          LOCALSTORE.set(item, value);
-          /*CONNECTION.set(this.primaryKey, item, value);*/
-          if (this._status && this._status == "SAVED")
-            this._status = "MODIFIED";
-        },
-        get: () => {
-          return LOCALSTORE.get(item);
-        },
-        enumerable: true
-      });
+    Object.keys(PROPS).forEach((item) => {
+      this._defineProperty(item);
       this[item] = PROPS[item].value || undefined;
+    });
+    
+  }
+  
+  _defineProperty(item){
+    const INSTANCESTORE = STORE.get(this);
+    Object.defineProperty(this, item, {
+      set: value => {
+        if (value !== undefined && value === INSTANCESTORE.get(item)) return;
+        this._checkType(value, this.constructor.properties[item].type, item);
+        INSTANCESTORE.set(item, value);
+        this.status = "MODIFIED";
+      },
+      get: () => {
+        return INSTANCESTORE.get(item);
+      },
+      enumerable: true
     });
   }
 
+  /**
+   * Generador para iteracion asincrona (for of)
+   *
+   * @memberof ModelAbs
+   */
   *[Symbol.iterator]() {
+
     for (let i of STORE.get(this).entries()) yield i;
+
   }
 
+  /**
+   * @description Comprueba el tipo de la variable. Tipado. Lanza excepcion si no puede evaluar correctamete.
+   *
+   * @param {*} value
+   * @param {*} type
+   * @param {*} [name=null]
+   * @memberof ModelAbs
+   */
   _checkType(value, type, name = null) {
-    if (type && value && !(value.__proto__ === type.prototype))
-      throw new TypeError(
-        `Tipo de variable no esperado para ${name}, se esperaba un ${type}`
-      );
+
+    if (type && value && !(value.__proto__ === type.prototype)) {
+      throw new TypeError(`Tipo de variable no esperado para ${name}, se esperaba un ${type}`);
+    }
+
   }
 
-  _load() {
-    console.log("carga datos remotos");
-    this._status = "SAVED";
+  /**
+   * @description trae datos remotos de un modelo
+   * 
+   * @async
+   * @memberof ModelAbs
+   */
+  async _load() {
+
+    const data = await CONNECTION
+      .setPath(`${this.constructor.model_path}${this.id}.json`)
+      .get();
+
+    Object.keys(data).forEach(item => {
+      this.set(item, data[item]);
+    });
+
+    this.status = "SAVED";
+
   }
 
-  reset() {
-    /* TODO memento pattern */
+  /**
+   * @description guarda datos en remoto de un modelo
+   * 
+   * @async
+   * @memberof ModelAbs
+   */
+  async save() {
+
+    const data = await CONNECTION
+      .setPath(`${this.constructor.model_path}${this.id}.json`)
+      .set(this.data);
+
+    this.status = "SAVED";
+
   }
 
-  save() {
-    console.log("salvo datos remotos");
-    this._status = "SAVED";
+  /**
+   * @description Metodo para borrar esta instancia
+   *
+   * @memberof ModelAbs
+   */
+  destructor() { }
+  
+  /**
+   * @description Metodo para eliminar el modelo en el Stoage Remoto
+   *
+   * @memberof ModelAbs
+   */
+  delete() { 
+    STORE.delete(this);
   }
-
-  destroy() {}
-
-  delete() {}
 }
-
-window.CONNECTION = CONNECTION;
