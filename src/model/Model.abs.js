@@ -101,7 +101,7 @@ export class ModelAbs extends Core.with() {
         if (this._status == "SAVED") this._status = status;
         break;
       default:
-        console.warn('tipo de stado desconocido');
+        console.warn('tipo de stado desconocido -> ' + status);
     }
 
   }
