@@ -122,6 +122,10 @@ export class ModelAbs extends Core.with() {
     });
   }
 
+  /**
+   * @description Define las propiedades en el modelo
+   * @param {Object} item propiedad a creear
+   */
   _defineProperty(item) {
     const INSTANCESTORE = STORE.get(this);
     const PROPS = this.constructor.properties;
