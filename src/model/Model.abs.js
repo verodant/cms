@@ -133,7 +133,7 @@ export class ModelAbs extends Core.with() {
     Object.defineProperty(this, item, {
       set: value => {
         if (value !== undefined && value === INSTANCESTORE.get(item)) return;
-        this._checkType(value, PROPS.type, item);
+        this._checkType(value, PROPS[item].type, item);
         INSTANCESTORE.set(item, value);
         this.status = "MODIFIED";
       },
@@ -158,6 +158,7 @@ export class ModelAbs extends Core.with() {
    * @memberof ModelAbs
    */
   _checkType(value, type, name = null) {
+    console.log(arguments)
     if (type && value && !(value.__proto__ === type.prototype)) {
       throw new TypeError(`Tipo de variable no esperado para ${name}, se esperaba un ${type}`);
     }
