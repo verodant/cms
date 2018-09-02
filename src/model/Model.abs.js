@@ -94,8 +94,6 @@ export class ModelAbs extends Core.with() {
     switch (status) {
       case 'NEW':
         if (!!this.status) throw new Error('No puede estar en estado Nuevo este objeto');
-        this._status = status;
-        break;
       case 'SAVED':
         this._status = status;
         break;
