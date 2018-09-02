@@ -122,7 +122,6 @@ set status(status) {
       this._defineProperty(item);
       this[item] = PROPS[item].value || undefined;
     });
-    
   }
   
   _defineProperty(item){
