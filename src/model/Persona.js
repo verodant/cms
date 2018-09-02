@@ -30,19 +30,12 @@ export class Persona extends ModelAbs {
         }
     }
 
-
-
     constructor(id) {
         super(arguments);
         if (id) {
             this.id = id;
             this._load();
         }
-    }
-
-    save() {
-        super.save();
-
     }
 
 }

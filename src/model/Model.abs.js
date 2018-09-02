@@ -53,9 +53,7 @@ export class ModelAbs extends Core.with() {
       this.constructor.name +
       "::" +
       Object.keys(this.constructor.properties)
-        .filter(item => {
-          return !!this.constructor.properties[item].pk;
-        })
+        .filter(item => !!this.constructor.properties[item].pk)
         .map(key => this[key] || this.constructor.properties[key].value)
         .join("::")
     );
@@ -70,7 +68,7 @@ export class ModelAbs extends Core.with() {
   get data() {
     const ret = {};
     for (const [prop, value] of this) {
-      ret[prop] = [value];
+      ret[prop] = value;
     }
     return ret;
   }
@@ -85,13 +83,13 @@ export class ModelAbs extends Core.with() {
     return this._status;
   }
 
-/**
- * @description Setea el estado del modelo con respecto al storage
- * 
- * @returns {String} 
- * @memberof ModelAbs
- */
-set status(status) {
+  /**
+   * @description Setea el estado del modelo con respecto al storage
+   * 
+   * @returns {String} 
+   * @memberof ModelAbs
+   */
+  set status(status) {
 
     switch (status) {
       case 'NEW':
@@ -109,34 +107,34 @@ set status(status) {
     }
 
   }
+
   /**
    * @description Metodo privado que define todas las propiedades y comprueba su viabilidad
    *
    * @memberof ModelAbs
    */
   _defineProperties() {
-    
     const PROPS = this.constructor.properties;
 
     Object.keys(PROPS).forEach((item) => {
       this._defineProperty(item);
-      this[item] = PROPS[item].value || undefined;
+      this.set(item, PROPS[item].value || undefined);
     });
   }
-  
-  _defineProperty(item){
+
+  _defineProperty(item) {
     const INSTANCESTORE = STORE.get(this);
+    const PROPS = this.constructor.properties;
+    
     Object.defineProperty(this, item, {
       set: value => {
         if (value !== undefined && value === INSTANCESTORE.get(item)) return;
-        this._checkType(value, this.constructor.properties[item].type, item);
+        this._checkType(value, PROPS.type, item);
         INSTANCESTORE.set(item, value);
         this.status = "MODIFIED";
       },
-      get: () => {
-        return INSTANCESTORE.get(item);
-      },
-      enumerable: true
+      get: () => (INSTANCESTORE.get(item)),
+      enumerable: PROPS[item].enumerable || true
     });
   }
 
@@ -145,11 +143,7 @@ set status(status) {
    *
    * @memberof ModelAbs
    */
-  *[Symbol.iterator]() {
-
-    for (let i of STORE.get(this).entries()) yield i;
-
-  }
+  *[Symbol.iterator]() { for (let i of STORE.get(this).entries()) yield i; }
 
   /**
    * @description Comprueba el tipo de la variable. Tipado. Lanza excepcion si no puede evaluar correctamete.
@@ -160,11 +154,9 @@ set status(status) {
    * @memberof ModelAbs
    */
   _checkType(value, type, name = null) {
-
     if (type && value && !(value.__proto__ === type.prototype)) {
       throw new TypeError(`Tipo de variable no esperado para ${name}, se esperaba un ${type}`);
     }
-
   }
 
   /**
@@ -174,7 +166,6 @@ set status(status) {
    * @memberof ModelAbs
    */
   async _load() {
-
     const data = await CONNECTION
       .setPath(`${this.constructor.model_path}${this.id}.json`)
       .get();
@@ -184,7 +175,6 @@ set status(status) {
     });
 
     this.status = "SAVED";
-
   }
 
   /**
@@ -193,14 +183,12 @@ set status(status) {
    * @async
    * @memberof ModelAbs
    */
-  async save() {
-
+  async _save() {
     const data = await CONNECTION
       .setPath(`${this.constructor.model_path}${this.id}.json`)
       .set(this.data);
 
     this.status = "SAVED";
-
   }
 
   /**
@@ -209,13 +197,13 @@ set status(status) {
    * @memberof ModelAbs
    */
   destructor() { }
-  
+
   /**
    * @description Metodo para eliminar el modelo en el Stoage Remoto
    *
    * @memberof ModelAbs
    */
-  delete() { 
+  delete() {
     STORE.delete(this);
   }
 }
