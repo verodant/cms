@@ -1,5 +1,5 @@
 import { ModelAbs } from './Model.abs.js';
-export class Persona extends ModelAbs {
+export class Persona extends ModelAbs.implements() {
 
     static get model_path() {
         return '/persona/';
@@ -39,3 +39,5 @@ export class Persona extends ModelAbs {
     }
 
 }
+
+window.ModelAbs = ModelAbs;

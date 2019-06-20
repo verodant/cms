@@ -14,9 +14,9 @@ const CONNECTION = new FetchStorage();
  *
  * @export
  * @class ModelAbs
- * @extends {Core.with()}
+ * @extends {Core}
  */
-export class ModelAbs extends Core.with() {
+export class ModelAbs extends Core {
   /**
    * @description Definicion de las propiedades desde cada modelo, contola si es pk, tipo de dato, etc...
    *
@@ -34,12 +34,9 @@ export class ModelAbs extends Core.with() {
    */
   constructor() {
     super();
-
     this.status = "NEW";
     STORE.set(this, new Map());
-
     this._defineProperties();
-
   }
 
   /**
@@ -84,7 +81,7 @@ export class ModelAbs extends Core.with() {
   }
 
   /**
-   * @description Setea el estado del modelo con respecto al storage
+   * @description Setea el estado del modelo con respecto al storage remoto
    * 
    * @returns {String} 
    * @memberof ModelAbs
@@ -98,7 +95,7 @@ export class ModelAbs extends Core.with() {
         this._status = status;
         break;
       case 'MODIFIED':
-        if (this._status == "SAVED") this._status = status;
+        if (this._status == "SAVED") { this._status = status; console.log('pepepepepep') };
         break;
       default:
         console.warn('tipo de stado desconocido -> ' + status);
@@ -127,7 +124,7 @@ export class ModelAbs extends Core.with() {
   _defineProperty(item) {
     const INSTANCESTORE = STORE.get(this);
     const PROPS = this.constructor.properties;
-    
+
     Object.defineProperty(this, item, {
       set: value => {
         if (value !== undefined && value === INSTANCESTORE.get(item)) return;
@@ -141,11 +138,12 @@ export class ModelAbs extends Core.with() {
   }
 
   /**
-   * Generador para iteracion asincrona (for of)
+   * Generador para iteracion, asegira recorrer solo los elementos del modelo almacenados
    *
    * @memberof ModelAbs
+   * @return {Array.entries} [key,value] 
    */
-  *[Symbol.iterator]() { for (let i of STORE.get(this).entries()) yield i; }
+  *[Symbol.iterator]() { for (let i of STORE.get(this).entries()) yield i }
 
   /**
    * @description Comprueba el tipo de la variable. Tipado. Lanza excepcion si no puede evaluar correctamete.
@@ -156,8 +154,7 @@ export class ModelAbs extends Core.with() {
    * @memberof ModelAbs
    */
   _checkType(value, type, name = null) {
-    console.log(arguments)
-    if (type && value && !(value.__proto__ === type.prototype)) {
+    if (type && value && false === (value.__proto__ === type.prototype)) {
       throw new TypeError(`Tipo de variable no esperado para ${name}, se esperaba un ${type}`);
     }
   }
@@ -195,11 +192,13 @@ export class ModelAbs extends Core.with() {
   }
 
   /**
-   * @description Metodo para borrar esta instancia
+   * @description Metodo destructor
    *
    * @memberof ModelAbs
    */
-  destructor() { }
+  destructor() { 
+    console.log('me destruyo', this)
+  }
 
   /**
    * @description Metodo para eliminar el modelo en el Stoage Remoto
