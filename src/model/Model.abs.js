@@ -64,7 +64,7 @@ export class ModelAbs extends Core {
    * @readonly
    * @memberof ModelAbs
    */
-  get data() { Object.fromEntries(this) }
+  get data() { return Object.fromEntries(this) }
 
   /**
    * @description Devuelve el estado del objeto con respecto al storage remoto
