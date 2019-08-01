@@ -1,4 +1,6 @@
-import { Core } from "/src/core.js";
+import {
+  Core
+} from "/src/core.js";
 //*import { FetchStorage } from "/src/storage/Fetch/FetchStorage.js";
 
 /**
@@ -50,9 +52,9 @@ export class ModelAbs extends Core {
       this.constructor.name +
       "::" +
       Object.keys(this.constructor.properties)
-        .filter(item => !!this.constructor.properties[item].pk)
-        .map(key => this[key] || this.constructor.properties[key].value)
-        .join("::")
+      .filter(item => !!this.constructor.properties[item].pk)
+      .map(key => this[key] || this.constructor.properties[key].value)
+      .join("::")
     );
   }
 
@@ -62,15 +64,7 @@ export class ModelAbs extends Core {
    * @readonly
    * @memberof ModelAbs
    */
-  get data() {
-    const ret = {};
-    /* TODO [...this].reduce((acc = {},value)=>{console.log(acc,value)})
-    debugger;*/
-    for (const [prop, value] of this) {
-      ret[prop] = value;
-    }
-    return ret;
-  }
+  get data() { Object.fromEntries(this) }
 
   /**
    * @description Devuelve el estado del objeto con respecto al storage remoto
@@ -97,7 +91,10 @@ export class ModelAbs extends Core {
         this._status = status;
         break;
       case 'MODIFIED':
-        if (this._status == "SAVED") { this._status = status; console.log('pepepepepep') };
+        if (this._status == "SAVED") {
+          this._status = status;
+          console.log('pepepepepep')
+        };
         break;
       default:
         console.warn('tipo de stado desconocido -> ' + status);
@@ -140,13 +137,13 @@ export class ModelAbs extends Core {
   }
 
   /**
-  * @description Comprueba la viabilidad del valor para esa propiedad
-  *
-  * @param {*} value valor de la variable a evaluar
-  * @param {*} prop cualquier tipo de variable para evaluar con value
-  * @memberof ModelAbs
-  * @throws TypeError
-  */
+   * @description Comprueba la viabilidad del valor para esa propiedad
+   *
+   * @param {*} value valor de la variable a evaluar
+   * @param {*} prop cualquier tipo de variable para evaluar con value
+   * @memberof ModelAbs
+   * @throws TypeError
+   */
   _checkValueViability(prop, value) {
     this._checkType(prop.type, value);
     this._checkValidation(prop.validation, value);
@@ -185,7 +182,9 @@ export class ModelAbs extends Core {
    * @memberof ModelAbs
    * @return {Array.entries} [key,value] 
    */
-  *[Symbol.iterator]() { for (let i of STORE.get(this).entries()) yield i }
+  *[Symbol.iterator]() {
+    for (let i of STORE.get(this).entries()) yield i
+  }
 
   /**
    * @description trae datos remotos de un modelo
