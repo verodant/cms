@@ -1,5 +1,5 @@
 import { Core } from "/src/core.js";
-import { FetchStorage } from "/src/storage/Fetch/FetchStorage.js";
+//*import { FetchStorage } from "/src/storage/Fetch/FetchStorage.js";
 
 /**
  * Definicion de las constantes del modulo
@@ -7,7 +7,7 @@ import { FetchStorage } from "/src/storage/Fetch/FetchStorage.js";
  *  - Connection 
  */
 const STORE = new WeakMap();
-const CONNECTION = new FetchStorage();
+//const CONNECTION = new FetchStorage();
 
 /**
  * @description Clase encargada de gestionar cualquier tipo de modelo
@@ -58,12 +58,14 @@ export class ModelAbs extends Core {
 
   /**
    *
-   * @returns {Object} Datos en bulk del modelo
+   * @returns {Object} Datos en bruto del modelo
    * @readonly
    * @memberof ModelAbs
    */
   get data() {
     const ret = {};
+    /* TODO [...this].reduce((acc = {},value)=>{console.log(acc,value)})
+    debugger;*/
     for (const [prop, value] of this) {
       ret[prop] = value;
     }
@@ -128,7 +130,7 @@ export class ModelAbs extends Core {
     Object.defineProperty(this, item, {
       set: value => {
         if (value !== undefined && value === INSTANCESTORE.get(item)) return;
-        this._checkType(value, PROPS[item].type, item);
+        this._checkValueViability(PROPS[item], value);
         INSTANCESTORE.set(item, value);
         this.status = "MODIFIED";
       },
@@ -138,26 +140,52 @@ export class ModelAbs extends Core {
   }
 
   /**
-   * Generador para iteracion, asegira recorrer solo los elementos del modelo almacenados
+  * @description Comprueba la viabilidad del valor para esa propiedad
+  *
+  * @param {*} value valor de la variable a evaluar
+  * @param {*} prop cualquier tipo de variable para evaluar con value
+  * @memberof ModelAbs
+  * @throws TypeError
+  */
+  _checkValueViability(prop, value) {
+    this._checkType(prop.type, value);
+    this._checkValidation(prop.validation, value);
+  }
+
+  /**
+   * @description Comprueba que el valor de la propiedad cumple con el resultado (Boolean) de la funcion.
+   *
+   * @param {*} prop 
+   * @param {*} value 
+   * @throws TypeError
+   * @memberof ModelAbs
+   */
+  _checkValidation(validation, value) {
+    if (!!validation && typeof validation == 'function' && !validation.call(this, value))
+      throw new TypeError(`El valor para la variable no cumple la funcion de validacion: ${validation.toString()}`);
+  }
+
+  /**
+   * @description Comprueba el tipo de la variable* 
+   * 
+   * @param {*} type cualquier tipo de variable para evaluar
+   * @param {*} value cualquier valor  para evaluar su tipo
+   * @throws TypeError
+   * @memberof ModelAbs
+   */
+  _checkType(type, value) {
+    if (!!type && !!value && !(value.__proto__ === type.prototype)) {
+      throw new TypeError(`El valor para la variable no es del tipo: ${type.name}`);
+    }
+  }
+
+  /**
+   * Generador para iteracion, asegura recorrer solo los elementos del modelo almacenados
    *
    * @memberof ModelAbs
    * @return {Array.entries} [key,value] 
    */
   *[Symbol.iterator]() { for (let i of STORE.get(this).entries()) yield i }
-
-  /**
-   * @description Comprueba el tipo de la variable. Tipado. Lanza excepcion si no puede evaluar correctamete.
-   *
-   * @param {*} value valor de la variable a evaluar
-   * @param {*} type cualquier tipo de variable para evaluar con value
-   * @param {String} [name=null] Nombre de la variable
-   * @memberof ModelAbs
-   */
-  _checkType(value, type, name = null) {
-    if (type && value && false === (value.__proto__ === type.prototype)) {
-      throw new TypeError(`Tipo de variable no esperado para ${name}, se esperaba un ${type}`);
-    }
-  }
 
   /**
    * @description trae datos remotos de un modelo
@@ -166,14 +194,13 @@ export class ModelAbs extends Core {
    * @memberof ModelAbs
    */
   async _load() {
-    const data = await CONNECTION
+    /* const data = await CONNECTION
       .setPath(`${this.constructor.model_path}${this.id}.json`)
       .get();
 
     Object.keys(data).forEach(item => {
       this.set(item, data[item]);
-    });
-
+    }); */
     this.status = "SAVED";
   }
 
@@ -184,10 +211,9 @@ export class ModelAbs extends Core {
    * @memberof ModelAbs
    */
   async _save() {
-    const data = await CONNECTION
+    /* const data = await CONNECTION
       .setPath(`${this.constructor.model_path}${this.id}.json`)
-      .set(this.data);
-
+      .set(this.data); */
     this.status = "SAVED";
   }
 
@@ -196,12 +222,12 @@ export class ModelAbs extends Core {
    *
    * @memberof ModelAbs
    */
-  destructor() { 
+  destructor() {
     console.log('me destruyo', this)
   }
 
   /**
-   * @description Metodo para eliminar el modelo en el Stoage Remoto
+   * @description Metodo para eliminar el modelo en el Storage
    *
    * @memberof ModelAbs
    */

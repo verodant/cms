@@ -18,7 +18,9 @@ export class Persona extends ModelAbs.implements() {
             },
             description: {
                 type: String,
-                value: 'sin Descripcion'
+                value: 'a',
+                validation: (value) => ['a','b','batman'].includes(value)
+
             },
             date: {
                 type: String,
